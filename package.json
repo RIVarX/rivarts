@@ -1,0 +1,29 @@
+{
+  "name": "rivarts",
+  "version": "1.0.0",
+  "description": "Self-contained TypeScript reactive variable package",
+  "type": "module",
+  "main": "dist/rivarts/index.js",
+  "scripts": {
+    "build:ts": "tsc -p tsconfig.json",
+    "test:ts": "node --loader ts-node/esm ./node_modules/mocha/bin/mocha --extension ts \"test/**/*.ts\"",
+    "trace:ts": "node --loader ts-node/esm ./sample/trace-demo.ts",
+    "build:trace-app": "npx tsc -p sample/static-site-ts/tsconfig.json",
+    "serve:trace-app": "npx http-server . -c-1",
+    "test": "mocha",
+    "test:all": "npm run test && npm run test:ts",
+    "serve:bag-pump": "npx http-server sample/bag-pump -c-1"
+  },
+  "author": "Rivka Altshuler",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "^20.14.5",
+    "chai": "^4.3.7",
+    "http-server": "^14.1.1",
+    "mocha": "^10.2.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
+}
