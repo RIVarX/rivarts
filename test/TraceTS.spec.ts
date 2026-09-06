@@ -23,7 +23,7 @@ describe('Trace TS', function () {
         '1. Rate_Control: 5 <{3}>',
         '2. Duration_Control: 20 <{2,3}>',
         '3. Dose_Control: 0.5 <{1,2,3}>',
-        '4. Duration_Control: [REJECTED - Subset check <{1,2,3}>]'
+        '4. Duration_Control: [REJECTED - Subset check value=20 <{1,2,3}>]'
       ].join('\n')
     );
   });

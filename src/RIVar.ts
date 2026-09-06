@@ -1,7 +1,7 @@
 import { Subject } from './Observable.js';
 import { Signal } from './Signal.js';
 import type { TraceSink } from './Trace.js';
-import { filter, map, share, startWith, withLatestFrom } from './Observable.js';
+import { filter, map, share } from './Observable.js';
 import type { Observable } from './Observable.js';
 
 export class RIVar<T> extends Subject<Signal<T>> {
@@ -22,34 +22,32 @@ export class RIVar<T> extends Subject<Signal<T>> {
   }
 
   set(source: Observable<Signal<T>>): void {
-    const targetWithInitialValue = this.pipe(startWith(new Signal<T>(undefined, [0])));
-    const streamOfChanges = source.pipe(
-      withLatestFrom(targetWithInitialValue, (valueInSource, valueInTarget) => ({ valueInSource, valueInTarget }))
-    );
+    const streamOfChangesInSource = source.pipe(
+      filter(valueInSource => {
+        const valueInTarget = this.prev ?? new Signal<T>(undefined, [0]);
 
-    const streamOfChangesInSource = streamOfChanges.pipe(
-      filter((change): change is { valueInSource: Signal<T>; valueInTarget: Signal<T> } => {
-        if (change.valueInSource === undefined) {
+        if (valueInSource === undefined) {
           return false;
         }
 
-        const comparison = change.valueInSource.compareTo(change.valueInTarget);
+        if (valueInSource.isRejectedBySubsetCheck(valueInTarget)) {
+          this.traceSink?.record({
+            variableName: this.name,
+            signal: valueInSource,
+            accepted: false,
+            rejectionReason: 'Subset check'
+          });
+          return false;
+        }
+
+        const comparison = valueInSource.compareTo(valueInTarget);
         if (comparison > 0) {
           return true;
         }
 
-        if (change.valueInSource.isRejectedBySubsetCheck(change.valueInTarget)) {
-          this.traceSink?.record({
-            variableName: this.name,
-            signal: change.valueInSource,
-            accepted: false,
-            rejectionReason: 'Subset check'
-          });
-        }
-
         return false;
       }),
-      map(change => change.valueInSource),
+      map(valueInSource => valueInSource),
       share()
     );
 

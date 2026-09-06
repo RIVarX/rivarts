@@ -21,6 +21,9 @@ function formatValue(value: unknown): string {
   if (value === undefined || value === null) {
     return 'null';
   }
+  if (typeof value === 'number') {
+    return String(Number(value.toFixed(2)));
+  }
   return String(value);
 }
 
@@ -29,7 +32,7 @@ export function formatTraceEvent<T>(event: TraceEvent<T>): string {
     return `${event.variableName}: ${formatValue(event.signal.value)} ${formatPrioritySet(event.signal.prioritySet)}`;
   }
 
-  return `${event.variableName}: [REJECTED - ${event.rejectionReason ?? 'Ignored'} ${formatPrioritySet(event.signal.prioritySet)}]`;
+  return `${event.variableName}: [REJECTED - ${event.rejectionReason ?? 'Ignored'} value=${formatValue(event.signal.value)} ${formatPrioritySet(event.signal.prioritySet)}]`;
 }
 
 export class TraceCollector implements TraceSink {

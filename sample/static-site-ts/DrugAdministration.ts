@@ -2,8 +2,9 @@ export {};
 
 import { RIVar, lift, Signal, TraceCollector } from '../../dist/index.js';
 
-const div = (x: number, y: number) => (y === 0 ? 0 : x / y);
-const mul = (x: number, y: number) => x * y;
+const roundToTwo = (value: number) => Number(value.toFixed(2));
+const div = (x: number, y: number) => (y === 0 ? 0 : roundToTwo(x / y));
+const mul = (x: number, y: number) => roundToTwo(x * y);
 const trace = new TraceCollector();
 
 const syncTrace = () => {
@@ -72,9 +73,9 @@ class Bag {
     volume: RIVar<number>;
     concentration: RIVar<number>;
     constructor() {
-        this.amount = new RIVar<number>('Drug_Amount');
-        this.volume = new RIVar<number>('Volume');
-        this.concentration = new RIVar<number>('Concentration');
+        this.amount = new RIVar<number>('Drug_Amount', trace);
+        this.volume = new RIVar<number>('Volume', trace);
+        this.concentration = new RIVar<number>('Concentration', trace);
         this.concentration.set(lift(div, this.amount, this.volume));
         this.amount.set(lift(mul, this.concentration, this.volume));
         this.volume.set(lift(div, this.amount, this.concentration));
@@ -101,6 +102,7 @@ class Pump {
 }
 
 const toNumber = (value: string) => Number(value) || 0;
+const formatNumber = (value: number) => String(Number(value.toFixed(2)));
 const bind = (inputId: string, variable: RIVar<number>) => {
     const input = document.getElementById(inputId) as HTMLInputElement;
     if (!input) throw new Error(`Missing input element: ${inputId}`);
@@ -110,7 +112,7 @@ const bind = (inputId: string, variable: RIVar<number>) => {
         syncTrace();
     });
     variable.subscribe((val: Signal<number>) => {
-        const value = String(val?.value ?? 0);
+        const value = formatNumber(val?.value ?? 0);
         if (input.value !== value) {
             input.value = value;
             input.style.fontStyle = 'italic';
@@ -128,16 +130,6 @@ bind('dose', pump.dose);
 bind('duration', pump.duration);
 bind('rate', pump.rate);
 
-const init = () => {
-    (document.getElementById('drug') as HTMLInputElement).value = '10';
-    (document.getElementById('duration') as HTMLInputElement).value = '20';
-    (document.getElementById('rate') as HTMLInputElement).value = '5';
-    pump.rate.next(new Signal<number>(5, [3]));
-    pump.duration.next(new Signal<number>(20, [2, 3]));
-    bag.amount.next(new Signal<number>(10, [1]));
-    syncTrace();
-};
 window.addEventListener('DOMContentLoaded', () => {
     bindTraceControls();
-    init();
 });
